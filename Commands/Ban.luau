@@ -230,7 +230,7 @@ return {
 				active = true,
 				duration = duration,
 				privateReason = `(Moderator: {interaction.member.user.id}) {privateReason}`,
-				publicReason = Config.PUBLIC_REASON,
+				displayReason = Config.PUBLIC_REASON,
 				excludeAltAccounts = excludeAlts
 			}
 		}), {

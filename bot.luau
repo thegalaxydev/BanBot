@@ -98,7 +98,7 @@ local Interaction_Functions = {
 				active = true,
 				duration = duration,
 				privateReason = `(Moderator: {interaction.member.user.id}) {reason}`,
-				publicReason = Config.PUBLIC_REASON,
+				displayReason = Config.PUBLIC_REASON,
 				excludeAltAccounts = true
 			}
 		}), {
