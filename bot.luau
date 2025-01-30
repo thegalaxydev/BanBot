@@ -220,8 +220,10 @@ local Interaction_Functions = {
 			local message = Objects.GetMessageInChannel(interaction.channel.id, Snowflake.new(interaction.message.id))
 			message:Delete()
 		end
+
+		return
 	end,
-	["unban"] = function(interaction, userId, channelName)
+	["unban"] = function(interaction, userId, channelName, isApproval)
 		local moderationToggle = fs.readFile("MODERATION_TOGGLE")
 
 		if moderationToggle == "off" then
@@ -344,8 +346,12 @@ local Interaction_Functions = {
 			end
 		end
 
-		local message = Objects.GetMessageInChannel(interaction.channel.id, Snowflake.new(interaction.message.id))
-		message:Delete()
+		if isApproval then
+			local message = Objects.GetMessageInChannel(interaction.channel.id, Snowflake.new(interaction.message.id))
+			message:Delete()
+		end
+
+		return
 	end,
 
 	["deny"] = function(interaction, userId)

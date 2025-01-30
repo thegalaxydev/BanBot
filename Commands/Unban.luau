@@ -151,7 +151,7 @@ return {
 								type = 2,
 								label = "Approve",
 								style = 3, 
-								custom_id = `unban_{userId}_{interaction.channel.name}`
+								custom_id = `unban_{userId}_{interaction.channel.name}_true`
 							},
 							{
 								type = 2,
