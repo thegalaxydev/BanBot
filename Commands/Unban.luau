@@ -223,8 +223,7 @@ return {
 				type = Enum.INTERACTION_CALLBACK_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
 				data = {
 					embeds = {
-						Embed.new().setColor(Color3.fromRGB(0, 255, 0)).setDescription("User unbanned successfully.").finish()
-					},
+						Embed.new().setColor(Color3.fromRGB(255, 0, 0)).setDescription(`({username})[https://www.roblox.com/users/{userId}] unbanned successfully.`).finish()					},
 					flags = Enum.MESSAGE_FLAGS.EPHEMERAL,
 				}
 			}

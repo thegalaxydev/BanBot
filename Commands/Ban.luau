@@ -41,6 +41,12 @@ return {
 				description = "Exclude alts in the ban. (Default: true)",
 				type = Enum.APPLICATION_COMMAND_OPTION_TYPE.BOOLEAN,
 				required = false,
+			},
+			{
+				name = "public-reason",
+				description = "Public reason for the ban.",
+				type = Enum.APPLICATION_COMMAND_OPTION_TYPE.STRING,
+				required = false,
 			}
 		}
 	},
@@ -117,9 +123,14 @@ return {
 		end
 
 		local excludeAlts = true
+		local publicReason = Config.PUBLIC_REASON
 		
 		if rank == 3 then
 			excludeAlts = options[4] and options[4].value or true
+		end
+
+		if rank >= 2 then
+			publicReason = options[5] and options[5].value or Config.PUBLIC_REASON
 		end
 
 		local userId = `{options[1].value}`
@@ -358,7 +369,7 @@ return {
 				type = Enum.INTERACTION_CALLBACK_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
 				data = {
 					embeds = {
-						Embed.new().setColor(Color3.fromRGB(255, 0, 0)).setDescription("User banned successfully.").finish()
+						Embed.new().setColor(Color3.fromRGB(255, 0, 0)).setDescription(`({username})[https://www.roblox.com/users/{userId}] banned successfully.`).finish()
 					},
 					flags = Enum.MESSAGE_FLAGS.EPHEMERAL,
 				}
