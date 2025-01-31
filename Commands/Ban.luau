@@ -122,15 +122,33 @@ return {
 			}
 		end
 
+		local duration = if (Config.DEFAULT_DURATION == -1) then nil else `{Config.DEFAULT_DURATION}s`
 		local excludeAlts = true
 		local publicReason = Config.PUBLIC_REASON
+
+		for _, option in options do
+			if option.name == "duration" then
+				duration = `{option.value}s`
+				break
+			end
+		end
 		
 		if rank == 3 then
-			excludeAlts = options[4] and options[4].value or true
+			for _, option in options do
+				if option.name == "exclude-alts" then
+					excludeAlts = option.value
+					break
+				end
+			end
 		end
 
 		if rank >= 2 then
-			publicReason = options[5] and options[5].value or Config.PUBLIC_REASON
+			for _, option in options do
+				if option.name == "public-reason" then
+					publicReason = option.value
+					break
+				end
+			end
 		end
 
 		local userId = `{options[1].value}`
@@ -154,7 +172,6 @@ return {
 			end
 		end
 
-		local duration = options[3] and `{options[3].value}s` or nil
 		local avatarThumbnail = Misc.GetAvatarThumbnail(userId)
 
 		local suc, ret = Network.Get(`https://users.roblox.com/v1/users/{userId}`)
@@ -208,7 +225,7 @@ return {
 								type = 2,
 								label = "Approve",
 								style = 3, 
-								custom_id = `ban_{userId}_{duration}_{privateReason}_{interaction.channel.name}`
+								custom_id = `ban_{userId}_{duration}_{privateReason}_{interaction.channel.name}_{publicReason}`
 							},
 
 							{
@@ -235,15 +252,17 @@ return {
 		end
 
 		local url = `https://apis.roblox.com/cloud/v2/universes/{Config.UNIVERSE_ID}/user-restrictions/{userId}`
+		local gameJoinRestriction = {
+			active = true,
+			duration = duration,
+			privateReason = `(Moderator: {interaction.member.user.id}) {privateReason}`,
+			displayReason = publicReason,
+			excludeAltAccounts = excludeAlts
+		}
 
+		print(gameJoinRestriction)
 		local s,r = Network.Patch(url, Network.JsonEncode({
-			gameJoinRestriction = {
-				active = true,
-				duration = duration,
-				privateReason = `(Moderator: {interaction.member.user.id}) {privateReason}`,
-				displayReason = Config.PUBLIC_REASON,
-				excludeAltAccounts = excludeAlts
-			}
+			gameJoinRestriction = gameJoinRestriction
 		}), {
 			["Content-Type"] = "application/json",
 			["x-api-key"] = Config.API_KEY
@@ -369,7 +388,7 @@ return {
 				type = Enum.INTERACTION_CALLBACK_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
 				data = {
 					embeds = {
-						Embed.new().setColor(Color3.fromRGB(255, 0, 0)).setDescription(`({username})[https://www.roblox.com/users/{userId}] banned successfully.`).finish()
+						Embed.new().setColor(Color3.fromRGB(255, 0, 0)).setDescription(`[{username}](https://www.roblox.com/users/{userId}) banned successfully.`).finish()
 					},
 					flags = Enum.MESSAGE_FLAGS.EPHEMERAL,
 				}

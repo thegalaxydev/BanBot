@@ -28,7 +28,7 @@ for _, file in fs.readDir(commandsDirectory) do
 end
 
 local Interaction_Functions = {
-	["ban"] = function(interaction, userId, duration, reason, channelName)
+	["ban"] = function(interaction, userId, duration, reason, channelName, publicReason)
 		local moderationToggle = fs.readFile("MODERATION_TOGGLE")
 
 		if moderationToggle == "off" then
@@ -98,7 +98,7 @@ local Interaction_Functions = {
 				active = true,
 				duration = duration,
 				privateReason = `(Moderator: {interaction.member.user.id}) {reason}`,
-				displayReason = Config.PUBLIC_REASON,
+				displayReason = publicReason,
 				excludeAltAccounts = true
 			}
 		}), {
