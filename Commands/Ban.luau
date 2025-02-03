@@ -128,7 +128,7 @@ return {
 
 		for _, option in options do
 			if option.name == "duration" then
-				duration = `{option.value}s`
+				duration = option.value and `{option.value}s` or nil
 				break
 			end
 		end
