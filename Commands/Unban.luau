@@ -151,13 +151,13 @@ return {
 								type = 2,
 								label = "Approve",
 								style = 3, 
-								custom_id = `unban_{userId}_{interaction.channel.name}_true`
+								custom_id = `unban|{userId}|{interaction.channel.name}|true`
 							},
 							{
 								type = 2,
 								label = "Deny",
 								style = 4, 
-								custom_id = `deny_{user.id}`
+								custom_id = `deny|{user.id}`
 							}
 						}
 					}

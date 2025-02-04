@@ -375,9 +375,10 @@ local Interaction_Functions = {
 Components.GetInteractionSignal(Enum.COMPONENT.BUTTON):Connect(function(interaction, shard_id)
 	local custom_id = interaction.data.custom_id
 
-	local args = string.split(custom_id, "_")
+	local args = string.split(custom_id, "|")
 	local command = args[1]
 	local userId = args[2]
+
 
 	Interaction_Functions[command](interaction, userId, table.unpack(args, 3))
 end)

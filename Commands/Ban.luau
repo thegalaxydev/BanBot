@@ -285,14 +285,14 @@ return {
 								type = 2,
 								label = "Approve",
 								style = 3, 
-								custom_id = `ban_{userId}_{duration}_{privateReason}_{interaction.channel.name}_{publicReason}{evidence and `_{evidence}` or ``}`
+								custom_id = `ban|{userId}|{duration}|{privateReason}|{interaction.channel.name}|{publicReason}{evidence and `|{evidence}` or ``}`
 							},
 
 							{
 								type = 2,
 								label = "Deny",
 								style = 4, 
-								custom_id = `deny_{user.id}`
+								custom_id = `deny|{user.id}`
 							}
 						}
 					}
@@ -395,7 +395,7 @@ return {
 								type = 2,
 								label = "Unban",
 								style = 1, 
-								custom_id = `unban_{userId}_{interaction.channel.name}`
+								custom_id = `unban|{userId}|{interaction.channel.name}`
 							}
 						}
 					}
