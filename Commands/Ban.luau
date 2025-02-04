@@ -47,9 +47,16 @@ return {
 				description = "Public reason for the ban.",
 				type = Enum.APPLICATION_COMMAND_OPTION_TYPE.STRING,
 				required = false,
+			},
+			{
+				name = "evidence",
+				description = "Evidence for the ban.",
+				type = Enum.APPLICATION_COMMAND_OPTION_TYPE.STRING,
+				required = false,
 			}
 		}
 	},
+
 
 	Response = function(interaction)
 		local data = interaction.data
@@ -62,9 +69,12 @@ return {
 			return {
 				type = Enum.INTERACTION_CALLBACK_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
 				data = {
-					content = "Moderation is currently disabled."
+					embeds = {
+						Embed.new().setColor(Color3.fromRGB(255, 0, 0)).setDescription("Moderation is currently disabled.").finish()
+					},
+					flags = Enum.MESSAGE_FLAGS.EPHEMERAL,
+
 				},
-				flags = Enum.MESSAGE_FLAGS.EPHEMERAL
 			}
 		end
 
@@ -73,19 +83,24 @@ return {
 			return {
 				type = Enum.INTERACTION_CALLBACK_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
 				data = {
-					content = " Command error."
-				},
-				flags = Enum.MESSAGE_FLAGS.EPHEMERAL
+					embeds = {
+						Embed.new().setColor(Color3.fromRGB(255, 0, 0)).setDescription("Command error.").finish()
+					},
+					flags = Enum.MESSAGE_FLAGS.EPHEMERAL
+				}
 			}
 		end
+
 
 		if not interaction.member then
 			return {
 				type = Enum.INTERACTION_CALLBACK_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
 				data = {
-					content = "You do not have permission to use this command."
-				},
-				flags = Enum.MESSAGE_FLAGS.EPHEMERAL
+					embeds = {
+						Embed.new().setColor(Color3.fromRGB(255, 0, 0)).setDescription("You do not have permission to use this command.").finish()
+					},
+					flags = Enum.MESSAGE_FLAGS.EPHEMERAL
+				}
 			}
 		end
 
@@ -116,22 +131,39 @@ return {
 			return {
 				type = Enum.INTERACTION_CALLBACK_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
 				data = {
-					content = "You do not have permission to use this command."
-				},
-				flags = Enum.MESSAGE_FLAGS.EPHEMERAL
+					embeds = {
+						Embed.new().setColor(Color3.fromRGB(255, 0, 0)).setDescription("You do not have permission to use this command.").finish()
+					},
+					flags = Enum.MESSAGE_FLAGS.EPHEMERAL
+				}
 			}
 		end
+
 
 		local duration = if (Config.DEFAULT_DURATION == -1) then nil else `{Config.DEFAULT_DURATION}s`
 		local excludeAlts = true
 		local publicReason = Config.PUBLIC_REASON
+		local evidence = nil
 
 		for _, option in options do
-			if option.name == "duration" then
-				duration = option.value and `{option.value}s` or nil
+			if option.name == "evidence" then
+				evidence = option.value
 				break
 			end
 		end
+
+		for _, option in options do
+			if option.name == "duration" then
+
+				duration = option.value and `{option.value}s` or duration
+				if duration == -1 then
+					duration = nil
+				end
+				break
+			end
+		end
+
+
 		
 		if rank == 3 then
 			for _, option in options do
@@ -155,6 +187,8 @@ return {
 		local privateReason = options[2].value
 		local user = interaction.member.user
 
+		local tried = userId
+
 		if not tonumber(userId) and Config.USE_USERNAME then
 			local s,r = Network.Post(`https://users.roblox.com/v1/usernames/users`, Network.JsonEncode({
 				usernames = {
@@ -167,10 +201,25 @@ return {
 			if s then
 				local result = Network.JsonDecode(r.body)
 				if result.data then
-					userId = result.data[1].id
+					userId = result.data[1] and result.data[1].id or nil
 				end
 			end
 		end
+
+		if not userId then
+			return {
+				type = Enum.INTERACTION_CALLBACK_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
+				data = {
+					embeds = {
+						Embed.new().setColor(Color3.fromRGB(255, 0, 0)).setDescription(`Failed to ban **{tried}**. Invalid user ID or username.`).finish()
+					},
+					flags = Enum.MESSAGE_FLAGS.EPHEMERAL
+
+
+				}
+			}
+		end
+
 
 		local avatarThumbnail = Misc.GetAvatarThumbnail(userId)
 
@@ -188,35 +237,46 @@ return {
 		if rank == 1 then
 			local approvalChannel = Objects.GetChannel(Snowflake.new(Config.APPROVAL_CHANNEL_ID))
 			if approvalChannel then
+				local fields = {
+					{
+						name = "Trial Moderator",
+						value = `<@{user.id}> ({user.id})`,
+						inline = false
+					},
+					{
+						name = "User",
+						value = `[{username or userId}](https://www.roblox.com/users/{userId}/profile)`,
+						inline = true
+					},
+					{
+						name = "Duration",
+						value = duration and `{duration}` or "Permanent",
+						inline = true
+					},
+					{
+						name = "Reason",
+						value = privateReason,
+						inline = false
+					},
+				}
+
+				if evidence then
+					table.insert(fields, {
+						name = "Evidence",
+						value = evidence,
+						inline = false
+					})
+				end
 				approvalChannel:Send(nil, {
 					Embed.new()
 					.setTitle("User Ban Request")
 					.setColor(Color3.fromRGB(255, 0, 0))
-					.setFields({
-						{
-							name = "Trial Moderator",
-							value = `<@{user.id}> ({user.id})`,
-							inline = false
-						},
-						{
-							name = "User",
-							value = `[{username or userId}](https://www.roblox.com/users/{userId}/profile)`,
-							inline = true
-						},
-						{
-							name = "Duration",
-							value = duration and `{duration}` or "Permanent",
-							inline = true
-						},
-						{
-							name = "Reason",
-							value = privateReason,
-							inline = false
-						}
-					})
+					.setFields(fields)
+
 					.setFooter(os.date("%Y-%m-%d %H:%M:%S") .." - " .. `{userId}_{Bot.GenerateGUID()}`)
 					.setThumbnail(avatarThumbnail)
 					.finish()
+
 				}, nil, nil, nil, {
 					{
 						type = 1,	
@@ -225,7 +285,7 @@ return {
 								type = 2,
 								label = "Approve",
 								style = 3, 
-								custom_id = `ban_{userId}_{duration}_{privateReason}_{interaction.channel.name}_{publicReason}`
+								custom_id = `ban_{userId}_{duration}_{privateReason}_{interaction.channel.name}_{publicReason}{evidence and `_{evidence}` or ``}`
 							},
 
 							{
@@ -270,6 +330,51 @@ return {
 
 		print(s,r)
 
+		local fields = {
+			{
+				name = "Moderator",
+				value = `<@{user.id}> ({user.id})`,
+				inline = false
+			},
+			{
+				name = "Banned User",
+				value = `[{username or userId}](https://www.roblox.com/users/{userId}/profile)`,
+				inline = true
+			},
+			{
+				name = "Duration",
+				value = duration and `{duration}` or "Permanent",
+				inline = true
+			},
+			{
+				name = "Reason",
+				value = privateReason,
+				inline = false
+			},
+			{ 
+				name = "Channel Ran",
+				value = `{interaction.channel.name}`,
+				inline = true
+			},
+		}
+
+		if not excludeAlts then
+			table.insert(fields, {
+				name = "Include Alts",
+				value = "Yes",
+				inline = true
+			})
+		end
+
+		if evidence then
+			table.insert(fields, {
+				name = "Evidence",
+				value = evidence,
+				inline = false
+			})
+		end
+
+
 
 		if s and r.ok then
 			local logChannel = Objects.GetChannel(Snowflake.new(Config.LOG_CHANNEL_ID))
@@ -278,44 +383,7 @@ return {
 					Embed.new()
 					.setTitle("User Banned")
 					.setColor(Color3.fromRGB(255, 0, 0))
-					.setFields({
-						{
-							name = "Moderator",
-							value = `<@{user.id}> ({user.id})`,
-							inline = false
-						},
-						{
-							name = "Banned User",
-							value = `[{username or userId}](https://www.roblox.com/users/{userId}/profile)`,
-							inline = true
-						},
-						{
-							name = "Duration",
-							value = duration and `{duration}` or "Permanent",
-							inline = true
-						},
-						{
-							name = "Reason",
-							value = privateReason,
-							inline = false
-						},
-						{ 
-							name = "Channel Ran",
-							value = `{interaction.channel.name}`,
-							inline = true
-						},
-						(function()
-							if not excludeAlts then
-								return {
-									name = "Include Alts",
-									value = "Yes",
-									inline = true
-								}
-							end
-
-							return nil
-						end)()
-					})
+					.setFields(fields)
 					.setFooter(os.date("%Y-%m-%d %H:%M:%S") .." - " .. `{userId}_{Bot.GenerateGUID()}`)
 					.setThumbnail(avatarThumbnail)
 					.finish()

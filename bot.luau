@@ -28,7 +28,7 @@ for _, file in fs.readDir(commandsDirectory) do
 end
 
 local Interaction_Functions = {
-	["ban"] = function(interaction, userId, duration, reason, channelName, publicReason)
+	["ban"] = function(interaction, userId, duration, reason, channelName, publicReason, evidence)
 		local moderationToggle = fs.readFile("MODERATION_TOGGLE")
 
 		if moderationToggle == "off" then
@@ -156,11 +156,23 @@ local Interaction_Functions = {
 								name = "Channel Ran",
 								value = `{channelName}`,
 								inline = true
-							}
+							},
+							(function()
+								if evidence then
+									return {
+										name = "Evidence",
+										value = evidence,
+										inline = false
+									}
+								end
+
+								return nil
+							end)()
 						})
 						.setFooter(os.date("%Y-%m-%d %H:%M:%S") .." - " .. `{userId}_{Bot.GenerateGUID()}`)
 						.setThumbnail(avatarThumbnail)
 						.finish()
+
 					}, nil, nil, nil, {
 						{
 							type = 1,	
