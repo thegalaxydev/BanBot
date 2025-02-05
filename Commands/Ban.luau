@@ -154,10 +154,13 @@ return {
 
 		for _, option in options do
 			if option.name == "duration" and not duration then
-				duration = option.value and `{option.value}s`
-				if duration == -1 then
+				if option.value == -1 then
 					duration = nil
+					break
 				end
+
+				duration = option.value and `{option.value}s`
+
 				break
 			end
 		end
