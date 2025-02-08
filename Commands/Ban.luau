@@ -376,12 +376,10 @@ return {
 			})
 		end
 
-
-
 		if s and r.ok then
 			local logChannel = Objects.GetChannel(Snowflake.new(Config.LOG_CHANNEL_ID))
 			if logChannel then
-				local _, ret = logChannel:Send(nil, {
+				suc, ret = logChannel:Send(nil, {
 					Embed.new()
 					.setTitle("User Banned")
 					.setColor(Color3.fromRGB(255, 0, 0))
@@ -402,6 +400,8 @@ return {
 						}
 					}
 				})
+
+				if not suc or type(ret) ~= "table" then return end
 
 				local message = Objects.GetMessage(ret)
 				Task.Delay(300, function()
